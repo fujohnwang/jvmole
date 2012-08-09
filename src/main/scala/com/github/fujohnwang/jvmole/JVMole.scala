@@ -3,7 +3,6 @@ package com.github.fujohnwang.jvmole
 import commands._
 import sbt._
 import java.io.File
-import xsbti.AppConfiguration
 
 final class JVMole extends xsbti.AppMain with ProjectInfo with Commands {
   val initialLogging = initialGlobalLogging
@@ -24,18 +23,5 @@ final class JVMole extends xsbti.AppMain with ProjectInfo with Commands {
       if (!logFile.createNewFile()) logFile = File.createTempFile("jvmole", "log")
     }
     GlobalLogging.initial(MainLogging.globalDefault _, logFile)
-  }
-}
-
-
-object JVMole {
-  def main(args: Array[String]) {
-    new JVMole().run(new AppConfiguration() {
-      def arguments() = args
-
-      def baseDirectory() = null
-
-      def provider() = null
-    })
   }
 }
