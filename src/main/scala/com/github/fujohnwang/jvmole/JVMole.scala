@@ -5,7 +5,7 @@ import sbt._
 import java.io.File
 import xsbti.AppConfiguration
 
-final class JVMole extends xsbti.AppMain with ProjectInfo with WelcomeCommand with VirtualMachinesCommand with AttachCommand with DetachCommand with MBeanAttrSetCommand with MBeanDescCommand with MBeanExecCommand with MBeansListCommand {
+final class JVMole extends xsbti.AppMain with ProjectInfo with Commands {
   val initialLogging = initialGlobalLogging
 
   def run(configuration: xsbti.AppConfiguration): xsbti.MainResult = {
@@ -13,7 +13,7 @@ final class JVMole extends xsbti.AppMain with ProjectInfo with WelcomeCommand wi
   }
 
   def initialState(configuration: xsbti.AppConfiguration): State = {
-    val commandDefinitions = listVirtualMachines +: attach +: detach +: welcome +: BasicCommands.allBasicCommands
+    val commandDefinitions = listMBeans +: execMBeanMethod +: beanDesc +: setAttr +: listVirtualMachines +: attach +: detach +: welcome +: BasicCommands.allBasicCommands
     val commandsToRun = Seq("welcome", "iflast shell")
     State(configuration, commandDefinitions, Set.empty, None, commandsToRun, State.newHistory, AttributeMap.empty, initialLogging, State.Continue)
   }
