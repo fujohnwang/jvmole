@@ -7,9 +7,12 @@ import java.io.File
 
 final class JVMole extends xsbti.AppMain {
 
+  val initialLogging = initialGlobalLogging
+
+
   def run(configuration: xsbti.AppConfiguration): xsbti.MainResult = {
-    if (configuration.arguments().length == 1) {
-      println("welcome to jvmole's world: " + configuration.arguments().head)
+    if (configuration.arguments().length != 1) {
+      initialLogging.backed.warn("welcome to jvmole's world~")
       // TODO attach to target jvm if pid is available
     }
     MainLoop.runLogged(initialState(configuration))
@@ -22,9 +25,14 @@ final class JVMole extends xsbti.AppMain {
    */
   def initialState(configuration: xsbti.AppConfiguration): State = {
     val commandDefinitions = hello +: BasicCommands.allBasicCommands
-    val commandsToRun = Seq("shell", "hello")
-    State(configuration, commandDefinitions, Set.empty, None, commandsToRun, State.newHistory, AttributeMap.empty, initialGlobalLogging, State.Continue)
+    val commandsToRun = Seq("welcome", "shell")
+    State(configuration, commandDefinitions, Set.empty, None, commandsToRun, State.newHistory, AttributeMap.empty, initialLogging, State.Continue)
   }
+
+  def welcome = Command.command("welcome", "", "")(state => {
+    state.log.info("welcome to jvmole's world~")
+    state
+  })
 
   def hello = Command("hello", ("hello <name>", "just say hello"), "just say hello")(state => helloParser)(helloAction)
 
