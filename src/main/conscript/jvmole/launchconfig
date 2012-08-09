@@ -1,5 +1,5 @@
 [scala]
-  version: auto
+  version: 2.9.2
 
 [app]
   org: com.github.fujohnwang
