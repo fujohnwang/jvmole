@@ -7,15 +7,9 @@ import com.github.fujohnwang.jvmole.{ProjectInfo}
 import com.sun.tools.attach.VirtualMachine
 import management.ManagementFactory
 import collection.JavaConversions._
-import com.github.fujohnwang.jvmole.jmx.LocalJMXConnector
 
-trait Commands extends ProjectInfo with LocalJMXConnector {
+trait VirtualMachineCommands extends ProjectInfo {
   val VIRTUAL_MACHINE_K = AttributeKey[VirtualMachine]("virtual machine")
-
-  def welcome = Command.command("welcome") {
-    state => state.log.info("welcome to jvmole's world~"); state
-  }
-
   /**
    * current JVMole process's pid will not be listed.
    */
@@ -28,7 +22,7 @@ trait Commands extends ProjectInfo with LocalJMXConnector {
 
   def attach = Command("attach", ("attach <pid>", "attach to specific virtual machine instance as per pid"), "")(_ => token(Space) ~> token(Digit.+.map(_.mkString), "<pid>"))((s, pid) => {
     val ns = s.put(VIRTUAL_MACHINE_K, VirtualMachine.attach(pid))
-    s.log.info("attach to JVM instance with pid=" + pid + " successfully.")
+    ns.log.info("attach to JVM instance with pid=" + pid + " successfully.")
     ns.addExitHook(() => detach)
   })
 
@@ -39,14 +33,5 @@ trait Commands extends ProjectInfo with LocalJMXConnector {
     }
     s.remove(VIRTUAL_MACHINE_K)
   })
-
-  def listMBeans = Command.command("beans", "list mbeans registered", "")(s => s)
-
-  val setAttr = Command.command("set", "set attribute of some mbean", "")(s => s)
-
-  val beanDesc = Command.command("desc", "describe mbean", "")(s => s)
-
-  def execMBeanMethod = Command.command("exec", "invoke mbean method", "")(s => s)
-
 
 }

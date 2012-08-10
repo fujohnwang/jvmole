@@ -4,7 +4,7 @@ import commands._
 import sbt._
 import java.io.File
 
-final class JVMole extends xsbti.AppMain with ProjectInfo with Commands {
+final class JVMole extends xsbti.AppMain with ProjectInfo with WelcomeCommand with VirtualMachineCommands with JMXCommands {
   val initialLogging = initialGlobalLogging
 
   def run(configuration: xsbti.AppConfiguration): xsbti.MainResult = {

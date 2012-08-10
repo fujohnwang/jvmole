@@ -1,12 +1,20 @@
-package com.github.fujohnwang.jvmole.jmx
+package com.github.fujohnwang.jvmole.commands
 
-import java.io.File
+import sbt.Command
+import javax.management.remote.{JMXServiceURL, JMXConnectorFactory, JMXConnector}
 import com.sun.tools.attach.VirtualMachine
-import javax.management.remote.{JMXConnectorFactory, JMXServiceURL, JMXConnector}
-import com.github.fujohnwang.jvmole.ProjectInfo
+import java.io.File
 
-trait LocalJMXConnector extends ProjectInfo {
+trait JMXCommands extends VirtualMachineCommands {
   val CONNECTOR_ADDRESS = "com.sun.management.jmxremote.localConnectorAddress"
+
+  def listMBeans = Command.command("beans", "list mbeans registered", "")(s => s)
+
+  def beanDesc = Command.command("desc", "describe mbean", "")(s => s)
+
+  def setAttr = Command.command("set", "set attribute of some mbean", "")(s => s)
+
+  def execMBeanMethod = Command.command("exec", "invoke mbean method", "")(s => s)
 
   def execute[T](func: JMXConnector => T)(implicit vm: VirtualMachine): T = {
     val connector = JMXConnectorFactory.connect(new JMXServiceURL(getLocalJMXConnectorAddress(vm)))
@@ -27,5 +35,4 @@ trait LocalJMXConnector extends ProjectInfo {
       case address@_ => address
     }
   }
-
 }
