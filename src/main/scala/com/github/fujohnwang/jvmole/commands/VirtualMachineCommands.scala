@@ -10,6 +10,7 @@ import collection.JavaConversions._
 
 trait VirtualMachineCommands extends ProjectInfo {
   val VIRTUAL_MACHINE_K = AttributeKey[VirtualMachine]("virtual machine")
+
   /**
    * current JVMole process's pid will not be listed.
    */
@@ -29,7 +30,10 @@ trait VirtualMachineCommands extends ProjectInfo {
   def detach = Command.command("detach", "detach from attached JVM instance if any", "")(s => {
     s.get(VIRTUAL_MACHINE_K) match {
       case None => s.log.warn("no attached JVM instance found when trying to detach it.")
-      case Some(vm) => s.log.info("detach JVM instance."); vm.detach()
+      case Some(vm) => {
+        s.log.info("detach the JVM instance.")
+        vm.detach()
+      }
     }
     s.remove(VIRTUAL_MACHINE_K)
   })

@@ -10,7 +10,7 @@ scalacOptions := Seq("-deprecation", "-unchecked", "-optimise")
 
 javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
 
-crossPaths := false
+// crossPaths := false
 
 libraryDependencies ++= Seq(
 			"org.scala-sbt" % "command" % "0.12.0",
