@@ -13,6 +13,7 @@ javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
 // crossPaths := false
 
 libraryDependencies ++= Seq(
+            "org.slf4j" % "slf4j-api" % "1.6.6",
 			"org.scala-sbt" % "command" % "0.12.0",
 			"org.ow2.asm" % "asm" % "4.0",
 			"org.ow2.asm" % "asm-util" % "4.0",
