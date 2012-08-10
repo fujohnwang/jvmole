@@ -5,7 +5,7 @@ import sbt.complete.DefaultParsers._
 import javax.management.remote.{JMXServiceURL, JMXConnectorFactory, JMXConnector}
 import com.sun.tools.attach.VirtualMachine
 import java.io.File
-import javax.management.ObjectName
+import javax.management.{Attribute, ObjectName}
 import collection.JavaConversions._
 import org.slf4j.helpers.MessageFormatter
 
@@ -49,7 +49,40 @@ trait JMXCommands extends VirtualMachineCommands {
     s
   })
 
-  def setAttr = Command.command("set", "set attribute of some mbean", "")(s => s)
+  /**
+   * (space, Quote ~ name~ Quote | name  , space, attributeName, space, value, space*)
+   * @return
+   */
+  def setAttr = Command("set", ("set <objectName> <attributeName> <attributeValue>", "set attribute of some mbean"), "")(_ => attrSetParser)((s, args) => {
+    for (vm <- s.get(VIRTUAL_MACHINE_K)) {
+      execute(vm)(connector => {
+        val objectName = new ObjectName(args(0))
+        val attributeName = args(1)
+        val attributeValue = args(2)
+        val conn = connector.getMBeanServerConnection
+        conn.isRegistered(objectName) match {
+          case false => s.log.warn("no mbean found with object name='" + args(0) + "'")
+          case true => {
+            conn.getMBeanInfo(objectName).getAttributes.find(_.getName.equals(attributeName)) match {
+              case Some(attrInfo) => {
+                // TODO type conversion
+                conn.setAttribute(objectName, new Attribute(attributeName, attributeValue))
+              }
+              case None => s.log.warn("no attribute found with name=" + attributeName)
+            }
+          }
+        }
+      })
+    }
+    s
+  })
+
+  def attrSetParser = (token(Space) ~> token((DQuoteClass ~> (NotDQuoteClass).+ <~ DQuoteClass).string.||(NotSpace) map (r => r.left.getOrElse(r.left.get)), "<object name>")) ~ (token(Space) ~> token(NotSpace, "<attributeName>")) ~ (token(Space) ~> token(any.+.string, "<attributeValue>") <~ SpaceClass.*) map (r => Seq(r._1._1, r._1._2, r._2))
+
+  lazy val NotDQuoteClass =
+    charClass({
+      c: Char => (c != DQuoteChar)
+    }, "non-double-quote-space character")
 
   def execMBeanMethod = Command.command("exec", "invoke mbean method", "")(s => s)
 
