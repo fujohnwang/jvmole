@@ -31,6 +31,8 @@ JVM Mole, guess what it does ;-)
 
 不过如果某位看官感兴趣，倒是可以fork并在此基础上做扩展哦， 窥探JVM进程状态， 加载某些java agent做class instrumentation之类，都OK的啦，没有做不到，只有想不到，哈哈， GL&HF
 
+Oh, my bad, 可以随时在console里按tab键， 惊喜自己发现哦，哈哈哈
+
 # How to use 
 
 * 如果使用conscript安装，那么恭喜你，在本地直接执行`jvmole`即可， 因为conscript已经为你配置好了环境以及__jvmole__命令；
