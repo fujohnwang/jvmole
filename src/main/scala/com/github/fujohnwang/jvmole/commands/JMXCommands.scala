@@ -8,6 +8,7 @@ import java.io.File
 import javax.management.{Attribute, ObjectName}
 import collection.JavaConversions._
 import org.slf4j.helpers.MessageFormatter
+import scala.Some
 
 trait JMXCommands extends VirtualMachineCommands {
   val CONNECTOR_ADDRESS = "com.sun.management.jmxremote.localConnectorAddress"
@@ -53,7 +54,7 @@ trait JMXCommands extends VirtualMachineCommands {
    * (space, Quote ~ name~ Quote | name  , space, attributeName, space, value, space*)
    * @return
    */
-  def setAttr = Command("set", ("set <objectName> <attributeName> <attributeValue>", "set attribute of some mbean"), "")(_ => attrSetParser)((s, args) => {
+  def setAttr = Command("set", ("set <mbean> <attribute name> <attribute value>", "set attribute of some mbean"), "")(_ => attrSetParser)((s, args) => {
     for (vm <- s.get(VIRTUAL_MACHINE_K)) {
       execute(vm)(connector => {
         val objectName = new ObjectName(args(0))
@@ -77,16 +78,54 @@ trait JMXCommands extends VirtualMachineCommands {
     s
   })
 
-  def attrSetParser = (token(Space) ~> token((DQuoteClass ~> (NotDQuoteClass).+ <~ DQuoteClass).string.||(NotSpace) map (r => r.left.getOrElse(r.left.get)), "<object name>")) ~ (token(Space) ~> token(NotSpace, "<attributeName>")) ~ (token(Space) ~> token(any.+.string, "<attributeValue>") <~ SpaceClass.*) map (r => Seq(r._1._1, r._1._2, r._2))
+  def mbeanParser = (token(Space) ~> token((DQuoteClass ~> (NotDQuoteClass).+ <~ DQuoteClass).string.||(NotSpace) map (r => r.left.getOrElse(r.left.get)), "<object name>"))
+
+  def attrParser = (token(Space) ~> token(NotSpace, "<attributeName>"))
+
+  def attrSetParser = mbeanParser ~ attrParser ~ (token(Space) ~> token(any.+.string, "<attributeValue>") <~ SpaceClass.*) map (r => Seq(r._1._1, r._1._2, r._2))
 
   lazy val NotDQuoteClass =
     charClass({
       c: Char => (c != DQuoteChar)
     }, "non-double-quote-space character")
 
-  def execMBeanMethod = Command.command("exec", "invoke mbean method", "")(s => s)
 
-  def execute[T](vm: VirtualMachine)(func: JMXConnector => T): T = {
+  def methodNameParser = (token(Space) ~> token(NotSpace, "<methodName>"))
+
+  def execParser = mbeanParser ~ methodNameParser ~ (token(Space) ~> token(StringBasic, "<args>")).* <~ SpaceClass.*
+
+  /**
+   * limitation: only allows to invoke mbean methods with primitive type arguments
+   * <pre>
+   * <code> exec mbean method args* </code>
+   * </pre>
+   * @return
+   */
+  def execMBeanMethod = Command("exec", ("exec <mbean> <method name> <method args>*", "invoke mbean method"), "")(_ => execParser)((s, format) => {
+    val (mbeanName, methodName) = format._1
+    val arguments = format._2
+    for (vm <- s.get(VIRTUAL_MACHINE_K)) {
+      execute(vm)(connector => {
+        val conn = connector.getMBeanServerConnection
+        val objectName = new ObjectName(mbeanName)
+        conn.isRegistered(objectName) match {
+          case true => {
+            conn.getMBeanInfo(objectName).getOperations.find(mi => mi.getName == methodName && mi.getSignature.length == arguments.size) match {
+              case None => s.log.error(f("no method with name={} on mbean:{} found to execute.", methodName, mbeanName))
+              case Some(operation) => {
+                val result = conn.invoke(objectName, methodName, arguments.toArray[AnyRef], operation.getSignature.map(_.getType))
+                s.log.info(f("invoke method:{} on mbean:{} successfully with result={}", methodName, mbeanName, result.toString))
+              }
+            }
+          }
+          case false => s.log.error("no such mbean registered: " + mbeanName)
+        }
+      })
+    }
+    s
+  })
+
+  protected def execute[T](vm: VirtualMachine)(func: JMXConnector => T): T = {
     val connector = JMXConnectorFactory.connect(new JMXServiceURL(getLocalJMXConnectorAddress(vm)))
     try {
       func(connector)
