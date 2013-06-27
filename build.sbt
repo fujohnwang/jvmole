@@ -1,24 +1,23 @@
-organization := "me.afoo"
+organization := "com.github.fujohnwang"
 
-name := "publisher"
+name := "jvmole"
 
 version := "0.1-SNAPSHOT"
 
-scalaVersion := "2.10.2"
+scalaVersion := "2.9.2"
 
 scalacOptions := Seq("-deprecation", "-unchecked", "-optimise")
 
-javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
+javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
 
-crossPaths := false
+// crossPaths := false
 
 libraryDependencies ++= Seq(
-            "ch.qos.logback" % "logback-core" % "1.0.13",
-            "ch.qos.logback" % "logback-classic" % "1.0.13",
-			"org.scala-sbt" % "command" % "0.12.3",
-			"com.typesafe" % "config" % "1.0.1",
-			"org.eclipse.jgit" % "org.eclipse.jgit" % "2.3.1.201302201838-r",
-			"net.schmizz" % "sshj" % "0.8.1"
+            "org.slf4j" % "slf4j-api" % "1.6.6",
+			"org.scala-sbt" % "command" % "0.12.0",
+			"org.ow2.asm" % "asm" % "4.0",
+			"org.ow2.asm" % "asm-util" % "4.0",
+			"com.google.guava" % "guava" % "13.0"
 			)
 
 resolvers <+= sbtResolver
