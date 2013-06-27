@@ -1,12 +1,14 @@
 [scala]
-  version: 2.9.2
+  version: 2.10.2
 
 [app]
-  org: com.github.fujohnwang
-  name: jvmole
+  org: me.afoo
+  name: publisher_2.10
   version: 0.1-SNAPSHOT
-  class: com.github.fujohnwang.jvmole.JVMole
+  cross-versioned: false
+  class: me.afoo.AfooPublisher
   components: xsbti
+
 
 [repositories]
   local
